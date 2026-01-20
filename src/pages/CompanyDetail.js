@@ -15,7 +15,7 @@ export default function CompanyDetail() {
   const navigate = useNavigate();
   const [company, setCompany] = useState(null);
   const [loading, setLoading] = useState(true);
-
+// eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     fetchCompany();
   }, [id]);

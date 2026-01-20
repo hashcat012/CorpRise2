@@ -27,7 +27,7 @@ export default function Moves() {
   const [params, setParams] = useState({});
   const [dialogOpen, setDialogOpen] = useState(false);
   const [availableMoves, setAvailableMoves] = useState(null);
-
+// eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     fetchCompanies();
   }, []);
