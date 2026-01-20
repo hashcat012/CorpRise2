@@ -2,7 +2,6 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import '@/index.css';
 import Login from '@/pages/Login';
-import AuthCallback from '@/pages/AuthCallback';
 import Dashboard from '@/pages/Dashboard';
 import Companies from '@/pages/Companies';
 import CompanyDetail from '@/pages/CompanyDetail';
@@ -17,12 +16,7 @@ import { Toaster } from '@/components/ui/sonner';
 function AppRouter() {
   const location = useLocation();
   
-  // REMINDER: DO NOT HARDCODE THE URL, OR ADD ANY FALLBACKS OR REDIRECT URLS, THIS BREAKS THE AUTH
-  // Check URL fragment (not query params) for session_id
-  if (location.hash?.includes('session_id=')) {
-    return <AuthCallback />;
-  }
-  
+  // REMINDER: DO NOT HARDCODE THE URL, OR ADD ANY FALLBACKS OR REDIRECT URLS, THIS BREAKS THE AUTH  
   return (
     <>
       <div className="scanlines" />

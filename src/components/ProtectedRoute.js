@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 
 export default function ProtectedRoute({ children }) {
   const navigate = useNavigate();
@@ -16,11 +15,7 @@ export default function ProtectedRoute({ children }) {
     }
 
     const checkAuth = async () => {
-      try {
-        const response = await fetch(`${BACKEND_URL}/api/auth/me`, {
-          credentials: 'include'
-        });
-        
+      try {        
         if (!response.ok) throw new Error('Not authenticated');
         
         const userData = await response.json();
