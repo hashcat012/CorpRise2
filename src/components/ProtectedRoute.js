@@ -16,6 +16,7 @@ export default function ProtectedRoute({ children }) {
   }, []);
 
   if (loading) {
+    // Auth durumu netleşene kadar hiçbir şey render edilmez
     return (
       <div className="h-screen w-screen flex items-center justify-center bg-[#09090B]">
         <div className="text-white font-mono animate-pulse">LOADING...</div>
