@@ -12,11 +12,8 @@ export default function Dashboard() {
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (u) => {
-      if (u) {
-        setUser(u);
-      } else {
-        navigate("/login", { replace: true });
-      }
+      if (u) setUser(u);
+      else navigate("/login", { replace: true });
       setLoading(false);
     });
     return () => unsub();
@@ -30,13 +27,15 @@ export default function Dashboard() {
     );
   }
 
+  if (!user) return null;
+
   return (
     <div className="flex h-screen bg-[#09090B] text-white">
       <Sidebar />
       <div className="flex-1 ml-64 flex flex-col">
         <TopBar />
         <div className="flex-1 flex items-center justify-center font-mono text-xl">
-          HOŞ GELDİN {user?.displayName || "Kullanıcı"}
+          HOŞ GELDİN {user.displayName || "Kullanıcı"}
         </div>
       </div>
     </div>
