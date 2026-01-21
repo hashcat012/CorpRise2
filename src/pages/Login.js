@@ -6,8 +6,7 @@ import { signInWithGoogle } from "@/firebase";
 export default function Login() {
   const handleGoogleLogin = async () => {
     try {
-      await signInWithGoogle();
-      // navigate kaldırıldı, ProtectedRoute yönlendirecek
+      await signInWithGoogle(); // artık redirect kullanıyor
     } catch (error) {
       console.error("Google Login Error:", error);
     }
