@@ -15,14 +15,13 @@ import { Toaster } from '@/components/ui/sonner';
 import { listenAuth } from './firebase';
 
 function AppRouter() {
-  const location = useLocation();
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(undefined); // undefined = loading, null = not logged in
 
   useEffect(() => {
     listenAuth(setUser);
   }, []);
 
-  if (user === null) {
+  if (user === undefined) {
     return (
       <div className="h-screen w-screen flex items-center justify-center bg-[#09090B]">
         <div className="text-white font-mono text-sm uppercase tracking-widest animate-pulse">

@@ -14,15 +14,17 @@ const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const provider = new GoogleAuthProvider();
 
-// Auth listener & backend session creation
+/**
+ * Auth listener + backend session
+ * setUser sadece backend session hazır olduktan sonra çağrılır
+ */
 export const listenAuth = (setUser) => {
   onAuthStateChanged(auth, async (user) => {
     if (user) {
-      setUser(user);
-      const token = await user.getIdToken();
-      // Backend session oluştur
       try {
-        await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/auth/session`, {
+        const token = await user.getIdToken();
+        // Backend session oluştur
+        const resp = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/auth/session`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -31,8 +33,14 @@ export const listenAuth = (setUser) => {
           body: JSON.stringify({ session_id: token }),
           credentials: "include"
         });
+
+        if (!resp.ok) throw new Error("Backend session failed");
+
+        // Backend session başarılı → setUser
+        setUser(user);
       } catch (err) {
-        console.error("Backend session creation failed:", err);
+        console.error("Session oluşturulamadı:", err);
+        setUser(null); // session başarısızsa logout yap
       }
     } else {
       setUser(null);
