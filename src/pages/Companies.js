@@ -1,56 +1,46 @@
-import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { onAuthStateChanged } from "firebase/auth";
-import { auth, db } from "@/firebase";
-import Sidebar from "@/components/Sidebar";
-import TopBar from "@/components/TopBar";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Building2 } from "lucide-react";
-import { collection, getDocs, addDoc } from "firebase/firestore";
-import { toast } from "sonner";
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import Sidebar from '@/components/Sidebar';
+import TopBar from '@/components/TopBar';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Plus, Building2, TrendingUp } from 'lucide-react';
+import { toast } from 'sonner';
+
+const BACKEND_URL = 'https://tycoon-empire-8.preview.emergentagent.com';
 
 const COMPANY_TYPES = [
-  { value: "SaaS", label: "SaaS", desc: "Abonelik tabanlı, yüksek büyüme potansiyeli" },
-  { value: "E-ticaret", label: "E-ticaret", desc: "Hızlı gelir, orta risk" },
-  { value: "Oyun Stüdyosu", label: "Oyun Stüdyosu", desc: "Çok yüksek risk, çok yüksek ödül" },
-  { value: "Influencer/Ajans", label: "Influencer/Ajans", desc: "Düşük başlangıç, esnek büyüme" },
-  { value: "Finans/Yatırım", label: "Finans/Yatırım", desc: "Yüksek gelir, yüksek risk" },
+  { value: 'SaaS', label: 'SaaS', desc: 'Abonelik tabanlı, yüksek büyüme potansiyeli' },
+  { value: 'E-ticaret', label: 'E-ticaret', desc: 'Hızlı gelir, orta risk' },
+  { value: 'Oyun Stüdyosu', label: 'Oyun Stüdyosu', desc: 'Çok yüksek risk, çok yüksek ödül' },
+  { value: 'Influencer/Ajans', label: 'Influencer/Ajans', desc: 'Düşük başlangıç, esnek büyüme' },
+  { value: 'Finans/Yatırım', label: 'Finans/Yatırım', desc: 'Yüksek gelir, yüksek risk' },
 ];
 
 export default function Companies() {
   const navigate = useNavigate();
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
   const [companies, setCompanies] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [newCompany, setNewCompany] = useState({ name: "", company_type: "" });
+  const [newCompany, setNewCompany] = useState({ name: '', company_type: '' });
   const [creating, setCreating] = useState(false);
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (u) => {
-      if (u) {
-        setUser(u);
-        fetchCompanies(u.uid);
-      } else {
-        navigate("/login", { replace: true });
-      }
-      setLoading(false);
-    });
-    return () => unsub();
-  }, [navigate]);
+    fetchCompanies();
+  }, []);
 
-  const fetchCompanies = async (uid) => {
+  const fetchCompanies = async () => {
     try {
-      const snap = await getDocs(collection(db, "users", uid, "companies"));
-      const data = snap.docs.map((doc) => ({ company_id: doc.id, ...doc.data() }));
+      const response = await fetch(`${BACKEND_URL}/api/companies`, {
+        credentials: 'include'
+      });
+      const data = await response.json();
       setCompanies(data);
-    } catch (err) {
-      console.error("Failed to fetch companies:", err);
-      toast.error("Şirketler yüklenemedi");
+    } catch (error) {
+      console.error('Failed to fetch companies:', error);
     } finally {
       setLoading(false);
     }
@@ -58,28 +48,29 @@ export default function Companies() {
 
   const handleCreateCompany = async () => {
     if (!newCompany.name || !newCompany.company_type) {
-      toast.error("Şirket adı ve türü gerekli");
+      toast.error('Şirket adı ve türü gerekli');
       return;
     }
+
     setCreating(true);
     try {
-      await addDoc(collection(db, "users", user.uid, "companies"), {
-        ...newCompany,
-        revenue: 0,
-        net_profit: 0,
-        cash_flow: 0,
-        market_share: 0,
-        customer_satisfaction: 0,
-        risk_level: 0,
-        growth_rate: 0,
+      const response = await fetch(`${BACKEND_URL}/api/companies`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(newCompany)
       });
-      toast.success("Şirket başarıyla kuruldu!");
-      setDialogOpen(false);
-      setNewCompany({ name: "", company_type: "" });
-      fetchCompanies(user.uid);
-    } catch (err) {
-      console.error("Company creation failed:", err);
-      toast.error("Şirket kurulamadı");
+
+      if (response.ok) {
+        toast.success('Şirket başarıyla kuruldu!');
+        setDialogOpen(false);
+        setNewCompany({ name: '', company_type: '' });
+        fetchCompanies();
+      } else {
+        toast.error('Şirket kurulamadı');
+      }
+    } catch (error) {
+      toast.error('Bir hata oluştu');
     } finally {
       setCreating(false);
     }
@@ -88,12 +79,12 @@ export default function Companies() {
   if (loading) {
     return (
       <div className="h-screen w-screen flex items-center justify-center bg-[#09090B]">
-        <div className="text-white font-mono text-sm uppercase tracking-widest animate-pulse">LOADING...</div>
+        <div className="text-white font-mono text-sm uppercase tracking-widest animate-pulse">
+          LOADING...
+        </div>
       </div>
     );
   }
-
-  if (!user) return null;
 
   return (
     <div className="flex h-screen bg-[#09090B]" data-testid="companies-page">
@@ -104,51 +95,68 @@ export default function Companies() {
           <div className="max-w-[1600px] mx-auto space-y-6">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-4xl font-mono font-bold uppercase tracking-tight text-white">Şirketler</h1>
-                <p className="text-sm text-zinc-500 mt-1 font-mono uppercase tracking-wider">İş portföyünüzü yönetin</p>
+                <h1 className="text-4xl font-mono font-bold uppercase tracking-tight text-white" data-testid="companies-title">
+                  Şirketler
+                </h1>
+                <p className="text-sm text-zinc-500 mt-1 font-mono uppercase tracking-wider" data-testid="companies-subtitle">
+                  İş portföyünüzü yönetin
+                </p>
               </div>
+
               <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button className="bg-white text-black hover:bg-gray-200 rounded-none font-mono text-xs uppercase tracking-widest btn-hover">
+                  <Button
+                    className="bg-white text-black hover:bg-gray-200 rounded-none font-mono text-xs uppercase tracking-widest btn-hover"
+                    data-testid="open-create-company-dialog"
+                  >
                     <Plus className="w-4 h-4 mr-2" />
                     Yeni Şirket Kur
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="bg-[#121214] border border-zinc-800 text-white rounded-sm">
+                <DialogContent className="bg-[#121214] border border-zinc-800 text-white rounded-sm" data-testid="create-company-dialog">
                   <DialogHeader>
                     <DialogTitle className="font-mono uppercase tracking-tight">Yeni Şirket Kur</DialogTitle>
                   </DialogHeader>
                   <div className="space-y-4 mt-4">
-                    <Input
-                      value={newCompany.name}
-                      onChange={(e) => setNewCompany({ ...newCompany, name: e.target.value })}
-                      placeholder="Şirket adı"
-                      className="bg-zinc-900/50 border-zinc-800 focus:border-white rounded-none font-mono text-sm"
-                    />
-                    <Select
-                      value={newCompany.company_type}
-                      onValueChange={(value) => setNewCompany({ ...newCompany, company_type: value })}
-                    >
-                      <SelectTrigger className="bg-zinc-900/50 border-zinc-800 rounded-none font-mono">
-                        <SelectValue placeholder="Tür seçin" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-[#121214] border border-zinc-800 text-white">
-                        {COMPANY_TYPES.map((type) => (
-                          <SelectItem key={type.value} value={type.value} className="font-mono">
-                            <div>
-                              <div className="font-semibold">{type.label}</div>
-                              <div className="text-xs text-zinc-500">{type.desc}</div>
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <div>
+                      <label className="text-xs text-zinc-500 uppercase tracking-wider font-mono mb-2 block">
+                        Şirket Adı
+                      </label>
+                      <Input
+                        value={newCompany.name}
+                        onChange={(e) => setNewCompany({ ...newCompany, name: e.target.value })}
+                        placeholder="Örn: TechVenture Inc."
+                        className="bg-zinc-900/50 border-zinc-800 focus:border-white rounded-none font-mono text-sm"
+                        data-testid="company-name-input"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs text-zinc-500 uppercase tracking-wider font-mono mb-2 block">
+                        Şirket Türü
+                      </label>
+                      <Select value={newCompany.company_type} onValueChange={(value) => setNewCompany({ ...newCompany, company_type: value })}>
+                        <SelectTrigger className="bg-zinc-900/50 border-zinc-800 rounded-none font-mono" data-testid="company-type-select">
+                          <SelectValue placeholder="Tür seçin" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-[#121214] border border-zinc-800 text-white">
+                          {COMPANY_TYPES.map((type) => (
+                            <SelectItem key={type.value} value={type.value} className="font-mono" data-testid={`company-type-${type.value}`}>
+                              <div>
+                                <div className="font-semibold">{type.label}</div>
+                                <div className="text-xs text-zinc-500">{type.desc}</div>
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                     <Button
                       onClick={handleCreateCompany}
                       disabled={creating}
                       className="w-full bg-white text-black hover:bg-gray-200 rounded-none font-mono text-xs uppercase tracking-widest"
+                      data-testid="confirm-create-company-button"
                     >
-                      {creating ? "Kuruluyor..." : "Şirketi Kur"}
+                      {creating ? 'Kuruluyor...' : 'Şirketi Kur'}
                     </Button>
                   </div>
                 </DialogContent>
@@ -156,7 +164,7 @@ export default function Companies() {
             </div>
 
             {companies.length === 0 ? (
-              <Card className="bg-[#121214] border border-zinc-800 rounded-sm p-12">
+              <Card className="bg-[#121214] border border-zinc-800 rounded-sm p-12" data-testid="no-companies-card">
                 <div className="text-center">
                   <Building2 className="w-16 h-16 text-zinc-700 mx-auto mb-4" />
                   <h2 className="text-xl font-mono font-semibold text-white mb-2">Henüz şirket yok</h2>
@@ -166,6 +174,7 @@ export default function Companies() {
                   <Button
                     onClick={() => setDialogOpen(true)}
                     className="bg-white text-black hover:bg-gray-200 rounded-none font-mono text-xs uppercase tracking-widest"
+                    data-testid="create-first-company-button-empty"
                   >
                     <Plus className="w-4 h-4 mr-2" />
                     İlk Şirketinizi Kurun
@@ -177,8 +186,9 @@ export default function Companies() {
                 {companies.map((company) => (
                   <Card
                     key={company.company_id}
-                    className="bg-[#18181B] border border-zinc-800 rounded-sm overflow-hidden cursor-pointer card-hover"
-                    onClick={() => navigate(`/company/${company.company_id}`)}
+                    className="bg-[#121214] border border-zinc-800 rounded-sm overflow-hidden cursor-pointer card-hover"
+                    onClick={() => navigate(`/companies/${company.company_id}`)}
+                    data-testid={`company-card-${company.company_id}`}
                   >
                     <div className="p-6">
                       <div className="flex items-start justify-between mb-4">
@@ -189,6 +199,42 @@ export default function Companies() {
                           </span>
                         </div>
                         <Building2 className="w-6 h-6 text-zinc-600" />
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4 mb-4">
+                        <div>
+                          <div className="text-xs text-zinc-600 uppercase tracking-wider font-mono mb-1">Revenue</div>
+                          <div className="text-lg font-mono text-green-500">${company.revenue.toLocaleString()}</div>
+                        </div>
+                        <div>
+                          <div className="text-xs text-zinc-600 uppercase tracking-wider font-mono mb-1">Net Profit</div>
+                          <div className={`text-lg font-mono ${company.net_profit >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                            ${company.net_profit.toLocaleString()}
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-xs text-zinc-600 uppercase tracking-wider font-mono mb-1">Cash Flow</div>
+                          <div className="text-lg font-mono text-white">${company.cash_flow.toLocaleString()}</div>
+                        </div>
+                        <div>
+                          <div className="text-xs text-zinc-600 uppercase tracking-wider font-mono mb-1">Market Share</div>
+                          <div className="text-lg font-mono text-blue-400">{company.market_share.toFixed(1)}%</div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-4 pt-4 border-t border-zinc-900">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                          <span className="text-xs text-zinc-500 font-mono">Müşteri: {company.customer_satisfaction.toFixed(0)}%</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 rounded-full bg-yellow-500"></div>
+                          <span className="text-xs text-zinc-500 font-mono">Risk: {company.risk_level.toFixed(0)}%</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <TrendingUp className="w-3 h-3 text-blue-500" />
+                          <span className="text-xs text-zinc-500 font-mono">Büyüme: {company.growth_rate.toFixed(1)}%</span>
+                        </div>
                       </div>
                     </div>
                   </Card>
