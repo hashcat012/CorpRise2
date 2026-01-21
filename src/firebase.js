@@ -1,5 +1,5 @@
 import { initializeApp } from "firebase/app";
-import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import { getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult, onAuthStateChanged } from "firebase/auth";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBeh0zeqAPuSfxhCGvezG0OxCtjxpHClNA",
@@ -14,25 +14,37 @@ const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const provider = new GoogleAuthProvider();
 
-// Firebase ile login + backend session
-export const signInWithGoogle = async () => {
-  const result = await signInWithPopup(auth, provider);
-  const user = result.user;
-  const token = await user.getIdToken();
+// Redirect login
+export const signInWithGoogleRedirect = async () => {
+  await signInWithRedirect(auth, provider);
+};
 
-  // Backend session
-  const resp = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/auth/session`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify({ session_id: token }),
-    credentials: "include",
-  });
+// Redirect sonucu kontrolü (App.js'de çağrılacak)
+export const handleRedirectResult = async () => {
+  try {
+    const result = await getRedirectResult(auth);
+    if (result) {
+      const user = result.user;
+      const token = await user.getIdToken();
 
-  if (!resp.ok) throw new Error("Backend session failed");
-  return user;
+      // Backend session
+      const resp = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/auth/session`, {
+        method: "POST",
+        headers: { 
+          "Content-Type": "application/json", 
+          Authorization: `Bearer ${token}` 
+        },
+        body: JSON.stringify({ session_id: token }),
+        credentials: "include",
+      });
+
+      if (!resp.ok) throw new Error("Backend session failed");
+      return user;
+    }
+  } catch (err) {
+    console.error("Redirect login error:", err);
+    return null;
+  }
 };
 
 // Auth listener
@@ -43,14 +55,13 @@ export const listenAuth = (setUser) => {
         const token = await user.getIdToken();
         const resp = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/auth/session`, {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
+          headers: { 
+            "Content-Type": "application/json", 
+            Authorization: `Bearer ${token}` 
           },
           body: JSON.stringify({ session_id: token }),
           credentials: "include",
         });
-
         if (!resp.ok) throw new Error("Backend session failed");
         setUser(user);
       } catch (err) {

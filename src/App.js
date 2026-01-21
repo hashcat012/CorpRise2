@@ -12,13 +12,18 @@ import Market from '@/pages/Market';
 import Profile from '@/pages/Profile';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { Toaster } from '@/components/ui/sonner';
-import { listenAuth } from './firebase';
+import { listenAuth, handleRedirectResult } from './firebase';
 
 function AppRouter() {
   const [user, setUser] = useState(undefined); // undefined = loading, null = not logged in
 
   useEffect(() => {
     listenAuth(setUser);
+
+    (async () => {
+      const userFromRedirect = await handleRedirectResult();
+      if (userFromRedirect) setUser(userFromRedirect);
+    })();
   }, []);
 
   if (user === undefined) {

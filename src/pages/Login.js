@@ -1,13 +1,13 @@
 import React from "react";
 import { Building2, TrendingUp, Users, Award } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { signInWithGoogle } from "@/firebase";
+import { signInWithGoogleRedirect } from "@/firebase";
 
 export default function Login() {
   const handleGoogleLogin = async () => {
     try {
-      await signInWithGoogle();
-      // ProtectedRoute veya listenAuth yönlendirecek
+      await signInWithGoogleRedirect();
+      // Redirect sonrası App.js handleRedirectResult çağrılacak
     } catch (error) {
       console.error("Google login error:", error);
     }
@@ -18,7 +18,6 @@ export default function Login() {
       className="h-screen w-screen bg-[#09090B] flex items-center justify-center relative overflow-hidden"
       data-testid="login-page"
     >
-      {/* Background */}
       <div
         className="absolute inset-0 opacity-40"
         style={{
