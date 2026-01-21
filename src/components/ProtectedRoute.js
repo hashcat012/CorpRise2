@@ -18,3 +18,4 @@ export default function ProtectedRoute({ user, children }) {
   // logged in
   return children;
 }
+

@@ -14,9 +14,7 @@ const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const provider = new GoogleAuthProvider();
 
-/**
- * Firebase login popup + backend session oluşturma
- */
+// Firebase ile login + backend session
 export const signInWithGoogle = async () => {
   const result = await signInWithPopup(auth, provider);
   const user = result.user;
@@ -37,15 +35,12 @@ export const signInWithGoogle = async () => {
   return user;
 };
 
-/**
- * Auth listener (App.js içinde çağrılacak)
- */
+// Auth listener
 export const listenAuth = (setUser) => {
   onAuthStateChanged(auth, async (user) => {
     if (user) {
       try {
         const token = await user.getIdToken();
-        // Backend session
         const resp = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/auth/session`, {
           method: "POST",
           headers: {
