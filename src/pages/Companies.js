@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Building2, TrendingUp } from "lucide-react";
+import { Plus, Building2 } from "lucide-react";
 import { collection, getDocs, addDoc } from "firebase/firestore";
 import { toast } from "sonner";
 
@@ -37,8 +37,8 @@ export default function Companies() {
         fetchCompanies(u.uid);
       } else {
         navigate("/login", { replace: true });
-        setLoading(false);
       }
+      setLoading(false);
     });
     return () => unsub();
   }, [navigate]);
@@ -88,12 +88,12 @@ export default function Companies() {
   if (loading) {
     return (
       <div className="h-screen w-screen flex items-center justify-center bg-[#09090B]">
-        <div className="text-white font-mono text-sm uppercase tracking-widest animate-pulse">
-          LOADING...
-        </div>
+        <div className="text-white font-mono text-sm uppercase tracking-widest animate-pulse">LOADING...</div>
       </div>
     );
   }
+
+  if (!user) return null;
 
   return (
     <div className="flex h-screen bg-[#09090B]" data-testid="companies-page">
@@ -104,12 +104,8 @@ export default function Companies() {
           <div className="max-w-[1600px] mx-auto space-y-6">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-4xl font-mono font-bold uppercase tracking-tight text-white">
-                  Şirketler
-                </h1>
-                <p className="text-sm text-zinc-500 mt-1 font-mono uppercase tracking-wider">
-                  İş portföyünüzü yönetin
-                </p>
+                <h1 className="text-4xl font-mono font-bold uppercase tracking-tight text-white">Şirketler</h1>
+                <p className="text-sm text-zinc-500 mt-1 font-mono uppercase tracking-wider">İş portföyünüzü yönetin</p>
               </div>
               <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
                 <DialogTrigger asChild>
@@ -129,7 +125,10 @@ export default function Companies() {
                       placeholder="Şirket adı"
                       className="bg-zinc-900/50 border-zinc-800 focus:border-white rounded-none font-mono text-sm"
                     />
-                    <Select value={newCompany.company_type} onValueChange={(value) => setNewCompany({ ...newCompany, company_type: value })}>
+                    <Select
+                      value={newCompany.company_type}
+                      onValueChange={(value) => setNewCompany({ ...newCompany, company_type: value })}
+                    >
                       <SelectTrigger className="bg-zinc-900/50 border-zinc-800 rounded-none font-mono">
                         <SelectValue placeholder="Tür seçin" />
                       </SelectTrigger>
@@ -144,7 +143,11 @@ export default function Companies() {
                         ))}
                       </SelectContent>
                     </Select>
-                    <Button onClick={handleCreateCompany} disabled={creating} className="w-full bg-white text-black hover:bg-gray-200 rounded-none font-mono text-xs uppercase tracking-widest">
+                    <Button
+                      onClick={handleCreateCompany}
+                      disabled={creating}
+                      className="w-full bg-white text-black hover:bg-gray-200 rounded-none font-mono text-xs uppercase tracking-widest"
+                    >
                       {creating ? "Kuruluyor..." : "Şirketi Kur"}
                     </Button>
                   </div>
@@ -160,7 +163,10 @@ export default function Companies() {
                   <p className="text-sm text-zinc-500 font-mono mb-6">
                     Dijital dünyada ilk şirketinizi kurarak imparatorluğunuzu inşa edin
                   </p>
-                  <Button onClick={() => setDialogOpen(true)} className="bg-white text-black hover:bg-gray-200 rounded-none font-mono text-xs uppercase tracking-widest">
+                  <Button
+                    onClick={() => setDialogOpen(true)}
+                    className="bg-white text-black hover:bg-gray-200 rounded-none font-mono text-xs uppercase tracking-widest"
+                  >
                     <Plus className="w-4 h-4 mr-2" />
                     İlk Şirketinizi Kurun
                   </Button>
@@ -169,7 +175,11 @@ export default function Companies() {
             ) : (
               <div className="grid grid-cols-2 gap-6">
                 {companies.map((company) => (
-                  <Card key={company.company_id} className="bg-[#121214] border border-zinc-800 rounded-sm overflow-hidden cursor-pointer card-hover" onClick={() => navigate(`/company/${company.company_id}`)}>
+                  <Card
+                    key={company.company_id}
+                    className="bg-[#18181B] border border-zinc-800 rounded-sm overflow-hidden cursor-pointer card-hover"
+                    onClick={() => navigate(`/company/${company.company_id}`)}
+                  >
                     <div className="p-6">
                       <div className="flex items-start justify-between mb-4">
                         <div>
@@ -179,18 +189,6 @@ export default function Companies() {
                           </span>
                         </div>
                         <Building2 className="w-6 h-6 text-zinc-600" />
-                      </div>
-                      <div className="grid grid-cols-2 gap-4 mb-4">
-                        <div>
-                          <div className="text-xs text-zinc-600 uppercase tracking-wider font-mono mb-1">Revenue</div>
-                          <div className="text-lg font-mono text-green-500">${company.revenue.toLocaleString()}</div>
-                        </div>
-                        <div>
-                          <div className="text-xs text-zinc-600 uppercase tracking-wider font-mono mb-1">Net Profit</div>
-                          <div className={`text-lg font-mono ${company.net_profit >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                            ${company.net_profit.toLocaleString()}
-                          </div>
-                        </div>
                       </div>
                     </div>
                   </Card>
