@@ -1,18 +1,15 @@
 import React from "react";
 import { Building2, TrendingUp, Users, Award } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
-import { auth } from "@/firebase";
+import { signInWithGoogle } from "@/firebase";
 
 export default function Login() {
-
   const handleGoogleLogin = async () => {
     try {
-      const provider = new GoogleAuthProvider();
-      await signInWithPopup(auth, provider);
-      // navigate("/dashboard") kaldırıldı, ProtectedRoute yönlendirecek
+      await signInWithGoogle();
+      // navigate kaldırıldı, ProtectedRoute yönlendirecek
     } catch (error) {
-      console.error("Firebase Google Login Error:", error);
+      console.error("Google Login Error:", error);
     }
   };
 
@@ -21,7 +18,6 @@ export default function Login() {
       className="h-screen w-screen bg-[#09090B] flex items-center justify-center relative overflow-hidden"
       data-testid="login-page"
     >
-      {/* Background */}
       <div
         className="absolute inset-0 opacity-40"
         style={{
