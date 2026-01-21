@@ -19,16 +19,13 @@ export default function Dashboard() {
       }
       setLoading(false);
     });
-
     return () => unsub();
   }, [navigate]);
 
   if (loading) {
     return (
       <div className="h-screen w-screen flex items-center justify-center bg-[#09090B]">
-        <div className="text-white font-mono animate-pulse">
-          LOADING DASHBOARD...
-        </div>
+        <div className="text-white font-mono animate-pulse">LOADING DASHBOARD...</div>
       </div>
     );
   }
