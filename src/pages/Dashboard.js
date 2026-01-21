@@ -1,19 +1,32 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { onAuthStateChanged } from "firebase/auth";
-import { auth } from "@/firebase";
+import { auth, db } from "@/firebase";
 import Sidebar from "@/components/Sidebar";
 import TopBar from "@/components/TopBar";
+import { doc, getDoc } from "firebase/firestore";
 
 export default function Dashboard() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
+  const [dashboard, setDashboard] = useState(null);
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (u) => {
-      if (u) setUser(u);
-      else navigate("/login", { replace: true });
+    const unsub = onAuthStateChanged(auth, async (u) => {
+      if (u) {
+        setUser(u);
+        // Firebase üzerinden dashboard verisi çek
+        try {
+          const docRef = doc(db, "users", u.uid, "dashboard", "main");
+          const docSnap = await getDoc(docRef);
+          if (docSnap.exists()) setDashboard(docSnap.data());
+        } catch (err) {
+          console.error("Dashboard fetch error:", err);
+        }
+      } else {
+        navigate("/login", { replace: true });
+      }
       setLoading(false);
     });
     return () => unsub();
